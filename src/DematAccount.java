@@ -1,16 +1,24 @@
 import java.util.HashMap;
 
 public class DematAccount {
+    private static int idCounter = 1;
+    
     private int demandAccountId;
     private String panNumber;
+    private String password;
     private HashMap<String, Integer> stockHoldings;
     private HashMap<String, Integer> reservedHoldings;
 
-    public DematAccount(int demandAccountId, String panNumber){
-        this.demandAccountId = demandAccountId;;
+    public DematAccount(String panNumber, String password){
+        this.demandAccountId = idCounter++;
         this.panNumber = panNumber;
+        this.password = password;
         this.stockHoldings = new HashMap<>();
         this.reservedHoldings = new HashMap<>();
+    }
+
+    public static int getIdCounter() {
+        return idCounter;
     }
 
     public int getDemandAccountId(){
@@ -19,6 +27,17 @@ public class DematAccount {
 
     public String getPanNumber(){
         return this.panNumber;
+    }
+
+    // Password never leaves this class - InputHandler passed in, password checked internally
+    public boolean authenticateWithPrompt(InputHandler inputHandler, String prompt) {
+        String pass = inputHandler.getString(prompt);
+        return this.password.equals(pass);
+    }
+
+    // For internal use only when password is already obtained
+    boolean authenticate(String pass) {
+        return this.password.equals(pass);
     }
 
     public void addShares(String stockName, int quantity){
@@ -101,5 +120,9 @@ public class DematAccount {
         int stHoldings = stockHoldings.get(stockName);
         int reHoldings = reservedHoldings.getOrDefault(stockName, 0);
         return stHoldings - reHoldings;
+    }
+
+    public boolean hasHoldings() {
+        return !stockHoldings.isEmpty();
     }
 }

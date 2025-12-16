@@ -2,6 +2,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class Transaction {
+    private static int idCounter = 1;
+    
     private int transactionId;
     private int buyerId;
     private int sellerId;
@@ -13,8 +15,8 @@ public class Transaction {
     private double total;
     private long timeStamp;
 
-    public Transaction(int transactionId, int buyerId, int sellerId, int buyerTradingId, int sellerTradingId, String stockName, int quantity, double price, double total){
-        this.transactionId = transactionId;
+    public Transaction(int buyerId, int sellerId, int buyerTradingId, int sellerTradingId, String stockName, int quantity, double price, double total){
+        this.transactionId = idCounter++;
         this.buyerId = buyerId;
         this.sellerId = sellerId;
         this.buyerTradingId = buyerTradingId;
@@ -24,6 +26,10 @@ public class Transaction {
         this.price = price;
         this.total = total;
         this.timeStamp = System.currentTimeMillis();
+    }
+
+    public static int getIdCounter() {
+        return idCounter;
     }
 
     public int getBuyerId() {

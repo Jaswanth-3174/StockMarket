@@ -9,7 +9,6 @@ public class MarketPlace {
     private Map<Integer, DematAccount> dematAccounts;
     private Map<Integer, User> users;
     private List<Transaction> transactions;
-    private int transactionId = 1;
 
     public MarketPlace() {
         this.buyBook = new HashMap<>();
@@ -19,17 +18,27 @@ public class MarketPlace {
     public void setReferences(Map<Integer, TradingAccount> tradingAccounts,
                               Map<Integer, DematAccount> dematAccounts,
                               Map<Integer, User> users,
-                              List<Transaction> transactions,
-                              int transactionId) {
+                              List<Transaction> transactions) {
         this.tradingAccounts = tradingAccounts;
         this.dematAccounts = dematAccounts;
         this.users = users;
         this.transactions = transactions;
-        this.transactionId = transactionId;
     }
 
-    public int getTransactionId() {
-        return this.transactionId;
+    // Remove order from order books (used when cancelling orders)
+    public void removeOrder(Order order) {
+        String stock = order.getStockName();
+        if (order.isBuy()) {
+            TreeSet<Order> buys = buyBook.get(stock);
+            if (buys != null) {
+                buys.remove(order);
+            }
+        } else {
+            TreeSet<Order> sells = sellBook.get(stock);
+            if (sells != null) {
+                sells.remove(order);
+            }
+        }
     }
 
     public void addBuyOrder(Order o) {
@@ -119,12 +128,11 @@ public class MarketPlace {
             sellerTrade.credit(totalPaid);
             buyerDemat.addShares(stock, qty);
 
-            if (refund > 0) { 
+            if (refund > 0) {
                 buyerTrade.releaseReservedBalance(refund);
             }
 
             transactions.add(new Transaction(
-                transactionId++,
                 buy.getUserId(), sell.getUserId(),
                 buy.getTradingAccountId(), sell.getTradingAccountId(),
                 stock, qty, tradePrice, totalPaid

@@ -13,8 +13,6 @@ public class Main {
 
     static ArrayList<Transaction> transactions;
 
-    static int userId = 1, dematAccountId = 1, tradingAccountId = 1, transactionId = 1, orderId = 1;
-
     static ArrayList<String> stockSymbols;
 
     static MarketPlace marketPlace;
@@ -43,14 +41,14 @@ public class Main {
         stockSymbols.add("INFY");
 
         marketPlace = new MarketPlace();
-        marketPlace.setReferences(tradings, demats, users, transactions, transactionId);
+        marketPlace.setReferences(tradings, demats, users, transactions);
 
         // Promoter 1
-        promoter1 = new User(userId++, "Ram", "Ab.11111", "AWSD12J", true);
-        DematAccount dematAccount1 = getOrCreateDematByPAN(promoter1.getPanNumber());
+        promoter1 = new User("Ram", "Ab.11111", "AWSD12J", true);
+        DematAccount dematAccount1 = getOrCreateDematByPAN(promoter1.getPanNumber(), "Ab.11111");
         promoter1.setDematAccountId(dematAccount1.getDemandAccountId());
         users.put(promoter1.getUserId(), promoter1);
-        TradingAccount tradingAccount1 = new TradingAccount(tradingAccountId++, promoter1.getUserId());
+        TradingAccount tradingAccount1 = new TradingAccount(promoter1.getUserId());
         tradings.put(tradingAccount1.getTradingAccountId(), tradingAccount1);
         promoter1.setTradingAccountId(tradingAccount1.getTradingAccountId());
         dematAccount1.addShares("TCS", 1000);
@@ -63,7 +61,7 @@ public class Main {
         int p1SellQty = 300;
         double p1SellPrice = 1500.5;
         if (p1Demat.reserveStocks("TCS", p1SellQty)) {
-            Order p1SellOrder = new Order(orderId++, promoter1.getUserId(), promoter1.getTradingAccountId(), "TCS", p1SellQty, p1SellPrice, false);
+            Order p1SellOrder = new Order(promoter1.getUserId(), promoter1.getTradingAccountId(), "TCS", p1SellQty, p1SellPrice, false);
             marketPlace.addSellOrder(p1SellOrder);
             ordersById.put(p1SellOrder.getOrderId(), p1SellOrder);
             tradings.get(p1SellOrder.getTradingAccountId()).addOrder(p1SellOrder.getOrderId());
@@ -105,49 +103,97 @@ public class Main {
         System.out.println("1. View Portfolio");
         System.out.println("2. Place BUY Order");
         System.out.println("3. Place SELL Order");
-        System.out.println("4. View Order Book");
-        System.out.println("5. View My Transactions");
-        System.out.println("6. View All Transactions");
-        System.out.println("7. Add money from Savings account");
-        System.out.println("8. Logout");
+        System.out.println("4. View My Orders");
+        System.out.println("5. View All Order Book");
+        System.out.println("6. View My Transactions");
+        System.out.println("7. View All Transactions");
+        System.out.println("8. Add money from Savings account");
+        System.out.println("9. Delete Account");
+        System.out.println("10. Logout");
         System.out.print("Enter choice: ");
     }
 
     static void register() {
         String name = inputHandler.getString("Enter username: ");
+        if(!validator.validateUserName(name)){
+            return;
+        }
+        
         String pass = inputHandler.getString("Enter password: ");
-        String confirmPass = inputHandler.getString("Enter password again: ");
+        if(!validator.validatePassword(pass)){
+            return;
+        }
+
+        String confirmPass = inputHandler.getString("Enter confirm password : ");
         if(!pass.equals(confirmPass)){
             System.out.println("Passwords don't match! Register again");
             return;
         }
+        
         String pan = inputHandler.getString("Enter PAN number: ");
 
-        User user = new User(userId++, name, pass, pan, false);
+        if (isPanLinkedToActiveUser(pan)) {
+            System.out.println("This PAN is already linked to an active account. Cannot register.");
+            return;
+        }
+
+        DematAccount existingDemat = getDematByPAN(pan);
+        String dematPass = null;
+        
+        if (existingDemat != null) {
+            // PAN exists - authenticate with Demat password (handled inside DematAccount)
+            System.out.println("This PAN has an existing Demat Account.");
+            if (!existingDemat.authenticateWithPrompt(inputHandler, "Enter your Demat password to link: ")) {
+                System.out.println("Authentication failed! Wrong Demat password.");
+                return;
+            }
+            System.out.println("Authentication successful! Linking to existing Demat Account...");
+        } else {
+            // New PAN - create Demat password
+            System.out.println("Creating new Demat Account for PAN: " + pan);
+            dematPass = inputHandler.getString("Create Demat password: ");
+            if(!validator.validatePassword(dematPass)){
+                return;
+            }
+            String confirmDematPass = inputHandler.getString("Confirm Demat password: ");
+            if (!dematPass.equals(confirmDematPass)) {
+                System.out.println("Demat passwords don't match! Register again");
+                return;
+            }
+        }
+
+        User user = new User(name, pass, pan, false);
         users.put(user.getUserId(), user);
 
-        // automatically linking demat by PAN
-        DematAccount demat = getOrCreateDematByPAN(pan);
+        DematAccount demat = getOrCreateDematByPAN(pan, dematPass);
         user.setDematAccountId(demat.getDemandAccountId());
 
         // creating new trading account
-        TradingAccount trade = new TradingAccount(tradingAccountId++, user.getUserId());
+        TradingAccount trade = new TradingAccount(user.getUserId());
         tradings.put(trade.getTradingAccountId(), trade);
         user.setTradingAccountId(trade.getTradingAccountId());
 
         System.out.println("Registered! User ID: " + user.getUserId());
+        if (demat.hasHoldings()) {
+            System.out.println("Your previous holdings have been restored!");
+        }
     }
 
     static void login() {
         int id = inputHandler.getInteger("Enter User ID: ");
 
-        String pass = inputHandler.getString("Enter password: ");
         User user = users.get(id);
         if (user == null) {
             System.out.println("User not found.");
             return;
         }
-        if (!validator.validatePassword(pass)) {
+        if (user.isDeleted()) {
+            System.out.println("User ID has been deleted.");
+            return;
+        }
+        
+        // Password is handled inside User class - never exposed to Main
+        if (!user.login(inputHandler)) {
             System.out.println("Wrong password.");
             return;
         }
@@ -173,18 +219,26 @@ public class Main {
                     placeSellOrder(user);
                     break;
                 case 4:
-                    viewOrderBook();
+                    viewMyOrders(user);
                     break;
                 case 5:
-                    viewMyTransactions(user);
+                    viewOrderBook();
                     break;
                 case 6:
-                    viewAllTransactions();
+                    viewMyTransactions(user);
                     break;
                 case 7:
-                    addMoney(user);
+                    viewAllTransactions();
                     break;
                 case 8:
+                    addMoney(user);
+                    break;
+                case 9:
+                    if (deleteAccount(user)) {
+                        return; // return to main menu
+                    }
+                    break;
+                case 10:
                     System.out.println("Logged out.");
                     return;
                 default:
@@ -196,7 +250,6 @@ public class Main {
     static void viewPortfolio(User user) {
         System.out.println("\n--- PORTFOLIO ---");
 
-        // Demat holdings
         DematAccount demat = demats.get(user.getDematID());
         if (demat != null) {
             demat.getHoldings();
@@ -204,7 +257,6 @@ public class Main {
             System.out.println("No Demat account.");
         }
 
-        // Trading account balance
         TradingAccount ta = tradings.get(user.getTradingAccountId());
         if (ta != null) {
             ta.showBalances();
@@ -236,13 +288,11 @@ public class Main {
             return;
         }
 
-        Order order = new Order(orderId++, user.getUserId(), tradeId, stock, qty, price, true);
-        int originalQty = qty;
+        Order order = new Order(user.getUserId(), tradeId, stock, qty, price, true);
         marketPlace.addBuyOrder(order);
         ordersById.put(order.getOrderId(), order);
         trade.addOrder(order.getOrderId());
 
-        // Show final status
         if (order.getStatus().equals("FILLED")) {
             System.out.println("\nOrder #" + order.getOrderId() + " completely filled!");
         } else if (order.getStatus().equals("PARTIAL")) {
@@ -277,18 +327,44 @@ public class Main {
         int tradeId = user.getTradingAccountId();
         TradingAccount trade = tradings.get(tradeId);
 
-        Order order = new Order(orderId++, user.getUserId(), tradeId, stock, qty, price, false);
+        Order order = new Order(user.getUserId(), tradeId, stock, qty, price, false);
         marketPlace.addSellOrder(order);
         ordersById.put(order.getOrderId(), order);
         trade.addOrder(order.getOrderId());
 
-        // Show final status
         if (order.getStatus().equals("FILLED")) {
             System.out.println("\nOrder #" + order.getOrderId() + " completely filled!");
         } else if (order.getStatus().equals("PARTIAL")) {
             System.out.println("\nOrder #" + order.getOrderId() + " partially filled. Remaining: " + order.getQuantity() + " shares waiting.");
         } else {
             System.out.println("\nSELL order #" + order.getOrderId() + " placed. Waiting for matching buy order.");
+        }
+    }
+
+    static void viewMyOrders(User user) {
+        System.out.println("\n--- MY ORDERS ---");
+        boolean found = false;
+        
+        System.out.println("+----------+--------+----------+----------+----------------+--------------+------------+");
+        System.out.printf("| %-8s | %-6s | %-8s | %-8s | %-14s | %-12s | %-10s |%n",
+                "Order ID", "Type", "Stock", "Qty", "Price(1 stock)", "Total", "Status");
+        System.out.println("+----------+--------+----------+----------+----------------+--------------+------------+");
+        
+        for (Order order : ordersById.values()) {
+            if (order.getUserId() == user.getUserId()) {
+                String type = order.isBuy() ? "BUY" : "SELL";
+                double total = order.getQuantity() * order.getPrice();
+                System.out.printf("| %-8d | %-6s | %-8s | %-8d | %-14.2f | %-12.2f | %-10s |%n",
+                        order.getOrderId(), type, order.getStockName(), order.getQuantity(),
+                        order.getPrice(), total, order.getStatus());
+                found = true;
+            }
+        }
+        
+        System.out.println("+----------+--------+----------+----------+----------------+--------------+------------+");
+        
+        if (!found) {
+            System.out.println("No orders placed yet.");
         }
     }
 
@@ -350,16 +426,86 @@ public class Main {
         temp1.credit(amount);
     }
 
-    static DematAccount getOrCreateDematByPAN(String pan) {
+    static DematAccount getDematByPAN(String pan) {
+        for (DematAccount d : demats.values()) {
+            if (d.getPanNumber().equals(pan)) {
+                return d;
+            }
+        }
+        return null;
+    }
+
+    static DematAccount getOrCreateDematByPAN(String pan, String password) {
         for (DematAccount d : demats.values()) {
             if (d.getPanNumber().equals(pan)) {
                 System.out.println("Linked existing Demat for PAN: " + pan);
                 return d;
             }
         }
-        DematAccount newDemat = new DematAccount(dematAccountId++, pan);
+        DematAccount newDemat = new DematAccount(pan, password);
         demats.put(newDemat.getDemandAccountId(), newDemat);
         System.out.println("Created new Demat for PAN: " + pan);
         return newDemat;
+    }
+
+    static boolean isPanLinkedToActiveUser(String pan) {
+        for (User u : users.values()) {
+            if (u.getPanNumber().equals(pan) && !u.isDeleted()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    // deletes only trading account, not the demat account
+    static boolean deleteAccount(User user) {
+        System.out.println("\n--- DELETE ACCOUNT ---");
+        
+        // Show what will be deleted
+        TradingAccount trade = tradings.get(user.getTradingAccountId());
+        if (trade != null) {
+            System.out.println("\nYour Account with the savings money will also be deleted :");
+            System.out.printf("Trading Balance  : Rs.%-16.2f \n", trade.getBalance());
+            System.out.printf("Current Balance  : Rs.%-16.2f \n", trade.getCurrentBalance());
+            System.out.printf("Reserved Balance : Rs.%-16.2f \n", trade.getReservedBalance());
+            System.out.println("\nYour Demat Account and stock holdings will be PRESERVED.");
+            System.out.println("------------------------------------------------------------");
+        }
+        
+        // Password is handled inside User class - never exposed to Main
+        if (!user.confirmWithPassword(inputHandler, "Enter your password: ")) {
+            System.out.println("Wrong password. Account deletion unsuccessful.");
+            return false;
+        }
+
+        cancelUserOrders(user);
+
+        int tradeId = user.getTradingAccountId();
+        tradings.remove(tradeId);
+
+        user.setDeleted(true);
+
+        System.out.println("\nAccount deleted successfully!");
+        return true;
+    }
+
+    static void cancelUserOrders(User user) {
+        for (Order order : ordersById.values()) {
+            if (order.getUserId() == user.getUserId() && !order.getStatus().equals("FILLED")) {
+                if (order.isBuy()) {
+                    TradingAccount ta = tradings.get(order.getTradingAccountId());
+                    if (ta != null) {
+                        ta.releaseReservedBalance(order.getQuantity() * order.getPrice());
+                    }
+                } else {
+                    DematAccount da = demats.get(user.getDematID());
+                    if (da != null) {
+                        da.releaseReservedStocks(order.getStockName(), order.getQuantity());
+                    }
+                }
+                order.setStatus("CANCELLED");
+                marketPlace.removeOrder(order);
+            }
+        }
     }
 }

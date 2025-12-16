@@ -11,7 +11,7 @@ public class InputHandler {
 
     public int getInteger(String string){
         while (true){
-            System.out.println(string);
+            System.out.print(string);
             try {
                 int num = scanner.nextInt();
                 scanner.nextLine();
@@ -28,7 +28,7 @@ public class InputHandler {
 
     public String getString(String string){
         while (true){
-            System.out.println(string);
+            System.out.print(string);
             String input = scanner.nextLine();
             if(input.isEmpty()){
                 System.out.println("Input cannot be empty!");
@@ -40,7 +40,7 @@ public class InputHandler {
 
     public double getDouble(String string){
         while(true){
-            System.out.println(string);
+            System.out.print(string);
             try{
                 double d = scanner.nextDouble();
                 scanner.nextLine();

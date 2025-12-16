@@ -1,6 +1,8 @@
 import java.util.ArrayList;
 
 public class TradingAccount {
+    private static int idCounter = 1;
+    
     private int tradingAccountId;
     private int userId;
     private double balance;
@@ -10,8 +12,8 @@ public class TradingAccount {
     private ArrayList<Transaction> transactions;
     private boolean isActive;
 
-    public TradingAccount(int tradingAccountId, int userId){
-        this.tradingAccountId = tradingAccountId;
+    public TradingAccount(int userId){
+        this.tradingAccountId = idCounter++;
         this.userId = userId;
         this.balance = fetchBalance();
         this.reservedBalance = 0;
@@ -19,6 +21,10 @@ public class TradingAccount {
         this.orderIds = new ArrayList<>();
         this.transactions = new ArrayList<>();
         this.isActive = true;
+    }
+
+    public static int getIdCounter() {
+        return idCounter;
     }
 
     private double fetchBalance(){   // returns random amount between 1000 to 5000

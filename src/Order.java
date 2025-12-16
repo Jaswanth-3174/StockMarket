@@ -1,4 +1,6 @@
 public class Order {
+    private static int idCounter = 1;
+    
     private int orderId;
     private int userId;
     private int tradingAccountId;
@@ -9,8 +11,8 @@ public class Order {
     private String status;  // OPEN, PARTIAL, FILLED, CANCELLED
     private long timestamp;
 
-    public Order(int orderId, int userId, int tradingAccountId, String stockName, int quantity, double price, boolean isBuy) {
-        this.orderId = orderId;
+    public Order(int userId, int tradingAccountId, String stockName, int quantity, double price, boolean isBuy) {
+        this.orderId = idCounter++;
         this.userId = userId;
         this.tradingAccountId = tradingAccountId;
         this.stockName = stockName;
@@ -19,6 +21,10 @@ public class Order {
         this.isBuy = isBuy;
         this.status = "OPEN";
         this.timestamp = System.currentTimeMillis();
+    }
+
+    public static int getIdCounter() {
+        return idCounter;
     }
 
     public int getOrderId() {

@@ -46,27 +46,27 @@ public class Validator {
         return true;
     }
 
-    boolean validatePanNumber(String panNumber){
-        if(panNumber.length() != 7){
-            System.out.println("Invalid PAN Number");
-            return false;
-        }
-        for(int i=0; i<7; i++){
-            char c = panNumber.charAt(i);
-            if(i==4 || i==5){
-                if(c >= '0' && c <= '9'){
-                }else{
-                    System.out.println("Invalid PAN Number");
-                    return false;
-                }
-            }else{
-                if(c >= 'A' && c <= 'Z'){
-                }else{
-                    System.out.println("Invalid PAN Number");
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
+//    boolean validatePanNumber(String panNumber){
+//        if(panNumber.length() != 7){
+//            System.out.println("Invalid PAN Number");
+//            return false;
+//        }
+//        for(int i=0; i<7; i++){
+//            char c = panNumber.charAt(i);
+//            if(i==4 || i==5){
+//                if(c >= '0' && c <= '9'){
+//                }else{
+//                    System.out.println("Invalid PAN Number");
+//                    return false;
+//                }
+//            }else{
+//                if(c >= 'A' && c <= 'Z'){
+//                }else{
+//                    System.out.println("Invalid PAN Number");
+//                    return false;
+//                }
+//            }
+//        }
+//        return true;
+//    }
 }
