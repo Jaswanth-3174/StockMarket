@@ -1,6 +1,5 @@
 public class User {
     private static int idCounter = 1;
-    
     private int userId;
     private String userName;
     private String password;
@@ -75,19 +74,4 @@ public class User {
         this.isDeleted = deleted;
     }
 
-//    void displayUserDetails(){
-//        System.out.println();
-//        System.out.println("User details...");
-//        System.out.println("+----------+----------+------------+------------+");
-//        System.out.printf(
-//                "|%-10s|%-10s|%-12s|%-12s|\n",
-//                "User Id", "User name", "Pan Number", "Is promoter"
-//        );
-//        System.out.println("+----------+----------+------------+------------+");
-//        System.out.printf(
-//                "|%-10d|%-10s|%-12s|%-12s|\n",
-//                userId, userName, panNumber, isPromoter
-//        );
-//        System.out.println("+----------+----------+------------+------------+");
-//    }
 }

@@ -56,7 +56,6 @@ public class Main {
         dematAccount1.addShares("SBI", 2000);
         dematAccount1.addShares("INFY", 1200);
 
-        // Promoter1 places SELL
         DematAccount p1Demat = promoter1.getDematAccount();
         int p1SellQty = 300;
         double p1SellPrice = 1500.5;
@@ -141,7 +140,6 @@ public class Main {
         String dematPass = null;
         
         if (existingDemat != null) {
-            // PAN exists - authenticate with Demat password (handled inside DematAccount)
             System.out.println("This PAN has an existing Demat Account.");
             if (!existingDemat.authenticateWithPrompt(inputHandler, "Enter your Demat password to link: ")) {
                 System.out.println("Authentication failed! Wrong Demat password.");
@@ -149,7 +147,6 @@ public class Main {
             }
             System.out.println("Authentication successful! Linking to existing Demat Account...");
         } else {
-            // New PAN - create Demat password
             System.out.println("Creating new Demat Account for PAN: " + pan);
             dematPass = inputHandler.getString("Create Demat password: ");
             if(!validator.validatePassword(dematPass)){
@@ -168,7 +165,6 @@ public class Main {
         DematAccount demat = getOrCreateDematByPAN(pan, dematPass);
         user.setDematAccount(demat);
 
-        // creating new trading account
         TradingAccount trade = new TradingAccount(user.getUserId());
         tradings.put(trade.getTradingAccountId(), trade);
         user.setTradingAccount(trade);
@@ -191,8 +187,7 @@ public class Main {
             System.out.println("User ID has been deleted.");
             return;
         }
-        
-        // Password is handled inside User class - never exposed to Main
+
         if (!user.login(inputHandler)) {
             System.out.println("Wrong password.");
             return;
@@ -235,7 +230,7 @@ public class Main {
                     break;
                 case 9:
                     if (deleteAccount(user)) {
-                        return; // return to main menu
+                        return;
                     }
                     break;
                 case 10:
@@ -457,8 +452,7 @@ public class Main {
     // deletes only trading account, not the demat account
     static boolean deleteAccount(User user) {
         System.out.println("\n--- DELETE ACCOUNT ---");
-        
-        // Show what will be deleted
+
         TradingAccount trade = user.getTradingAccount();
         if (trade != null) {
             System.out.println("\nYour Account with the savings money will also be deleted :");
@@ -468,8 +462,7 @@ public class Main {
             System.out.println("\nYour Demat Account and stock holdings will be PRESERVED.");
             System.out.println("------------------------------------------------------------");
         }
-        
-        // Password is handled inside User class - never exposed to Main
+
         if (!user.confirmWithPassword(inputHandler, "Enter your password: ")) {
             System.out.println("Wrong password. Account deletion unsuccessful.");
             return false;

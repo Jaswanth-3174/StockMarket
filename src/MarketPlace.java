@@ -25,7 +25,7 @@ public class MarketPlace {
         this.transactions = transactions;
     }
 
-    // Remove order from order books (used when cancelling orders)
+    // used when cancelling orders, it removes order from order books
     public void removeOrder(Order order) {
         String stock = order.getStockName();
         if (order.isBuy()) {
@@ -147,12 +147,12 @@ public class MarketPlace {
             System.out.println("Seller ID      : " + sell.getUserId() + " (" + sellerUser.getUserName() + ")");
             System.out.println();
 
-            buys.remove(buy); // Updating quantities
+            buys.remove(buy);
             sells.remove(sell);
             buy.quantity -= qty;
             sell.quantity -= qty;
 
-            if (buy.quantity == 0) {    // Updating order status
+            if (buy.quantity == 0) {   
                 buy.setStatus("FILLED");
             } else {
                 buy.setStatus("PARTIAL");

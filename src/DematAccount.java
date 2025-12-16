@@ -2,7 +2,6 @@ import java.util.HashMap;
 
 public class DematAccount {
     private static int idCounter = 1;
-    
     private int demandAccountId;
     private String panNumber;
     private String password;
@@ -29,13 +28,11 @@ public class DematAccount {
         return this.panNumber;
     }
 
-    // Password never leaves this class - InputHandler passed in, password checked internally
     public boolean authenticateWithPrompt(InputHandler inputHandler, String prompt) {
         String pass = inputHandler.getString(prompt);
         return this.password.equals(pass);
     }
 
-    // For internal use only when password is already obtained
     boolean authenticate(String pass) {
         return this.password.equals(pass);
     }
