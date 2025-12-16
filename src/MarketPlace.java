@@ -120,8 +120,8 @@ public class MarketPlace {
             TradingAccount sellerTrade = tradingAccounts.get(sell.getTradingAccountId());
             User buyerUser = users.get(buy.getUserId());
             User sellerUser = users.get(sell.getUserId());
-            DematAccount buyerDemat = dematAccounts.get(buyerUser.getDematID());
-            DematAccount sellerDemat = dematAccounts.get(sellerUser.getDematID());
+            DematAccount buyerDemat = buyerUser.getDematAccount();
+            DematAccount sellerDemat = sellerUser.getDematAccount();
 
             sellerDemat.sellShares(stock, qty);
             buyerTrade.debit(totalPaid);

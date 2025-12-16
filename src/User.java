@@ -5,8 +5,8 @@ public class User {
     private String userName;
     private String password;
     private String panNumber;
-    private int tradingAccountId;
-    private int dematID;
+    private TradingAccount tradingAccount;
+    private DematAccount dematAccount;
     private boolean isPromoter;
     private boolean isDeleted;
 
@@ -15,8 +15,8 @@ public class User {
         this.userName = userName;
         this.password = password;
         this.panNumber = panNumber;
-        this.tradingAccountId = -1;
-        this.dematID = -1;
+        this.tradingAccount = null;
+        this.dematAccount = null;
         this.isPromoter = isPromoter;
         this.isDeleted = false;
     }
@@ -25,13 +25,11 @@ public class User {
         return idCounter;
     }
 
-    // Password never leaves this class - InputHandler passed in, password checked internally
     public boolean login(InputHandler inputHandler) {
         String pass = inputHandler.getString("Enter password: ");
         return this.password.equals(pass);
     }
 
-    // For delete confirmation - password checked internally
     public boolean confirmWithPassword(InputHandler inputHandler, String prompt) {
         String pass = inputHandler.getString(prompt);
         return this.password.equals(pass);
@@ -45,24 +43,24 @@ public class User {
         return this.userName;
     }
 
-    public int getDematID() {
-        return this.dematID;
+    public DematAccount getDematAccount() {
+        return this.dematAccount;
     }
 
-    public void setDematAccountId(int id){
-        this.dematID = id;
+    public void setDematAccount(DematAccount dematAccount){
+        this.dematAccount = dematAccount;
     }
 
     public String getPanNumber() {
         return this.panNumber;
     }
 
-    public void setTradingAccountId(int id){
-        this.tradingAccountId = id;
+    public void setTradingAccount(TradingAccount tradingAccount){
+        this.tradingAccount = tradingAccount;
     }
 
-    public int getTradingAccountId(){
-        return this.tradingAccountId;
+    public TradingAccount getTradingAccount(){
+        return this.tradingAccount;
     }
 
     public boolean isPromoter() {

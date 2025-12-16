@@ -46,25 +46,25 @@ public class Main {
         // Promoter 1
         promoter1 = new User("Ram", "Ab.11111", "AWSD12J", true);
         DematAccount dematAccount1 = getOrCreateDematByPAN(promoter1.getPanNumber(), "Ab.11111");
-        promoter1.setDematAccountId(dematAccount1.getDemandAccountId());
+        promoter1.setDematAccount(dematAccount1);
         users.put(promoter1.getUserId(), promoter1);
         TradingAccount tradingAccount1 = new TradingAccount(promoter1.getUserId());
         tradings.put(tradingAccount1.getTradingAccountId(), tradingAccount1);
-        promoter1.setTradingAccountId(tradingAccount1.getTradingAccountId());
+        promoter1.setTradingAccount(tradingAccount1);
         dematAccount1.addShares("TCS", 1000);
         dematAccount1.addShares("NIFTY", 1500);
         dematAccount1.addShares("SBI", 2000);
         dematAccount1.addShares("INFY", 1200);
 
         // Promoter1 places SELL
-        DematAccount p1Demat = demats.get(promoter1.getDematID());
+        DematAccount p1Demat = promoter1.getDematAccount();
         int p1SellQty = 300;
         double p1SellPrice = 1500.5;
         if (p1Demat.reserveStocks("TCS", p1SellQty)) {
-            Order p1SellOrder = new Order(promoter1.getUserId(), promoter1.getTradingAccountId(), "TCS", p1SellQty, p1SellPrice, false);
+            Order p1SellOrder = new Order(promoter1.getUserId(), promoter1.getTradingAccount().getTradingAccountId(), "TCS", p1SellQty, p1SellPrice, false);
             marketPlace.addSellOrder(p1SellOrder);
             ordersById.put(p1SellOrder.getOrderId(), p1SellOrder);
-            tradings.get(p1SellOrder.getTradingAccountId()).addOrder(p1SellOrder.getOrderId());
+            promoter1.getTradingAccount().addOrder(p1SellOrder.getOrderId());
             System.out.println("Promoter1 SELL placed: " + p1SellOrder.getOrderId());
         }
     }
@@ -166,12 +166,12 @@ public class Main {
         users.put(user.getUserId(), user);
 
         DematAccount demat = getOrCreateDematByPAN(pan, dematPass);
-        user.setDematAccountId(demat.getDemandAccountId());
+        user.setDematAccount(demat);
 
         // creating new trading account
         TradingAccount trade = new TradingAccount(user.getUserId());
         tradings.put(trade.getTradingAccountId(), trade);
-        user.setTradingAccountId(trade.getTradingAccountId());
+        user.setTradingAccount(trade);
 
         System.out.println("Registered! User ID: " + user.getUserId());
         if (demat.hasHoldings()) {
@@ -250,14 +250,14 @@ public class Main {
     static void viewPortfolio(User user) {
         System.out.println("\n--- PORTFOLIO ---");
 
-        DematAccount demat = demats.get(user.getDematID());
+        DematAccount demat = user.getDematAccount();
         if (demat != null) {
             demat.getHoldings();
         } else {
             System.out.println("No Demat account.");
         }
 
-        TradingAccount ta = tradings.get(user.getTradingAccountId());
+        TradingAccount ta = user.getTradingAccount();
         if (ta != null) {
             ta.showBalances();
         }
@@ -280,15 +280,14 @@ public class Main {
         sc.nextLine();
 
         double total = qty * price;
-        int tradeId = user.getTradingAccountId();
-        TradingAccount trade = tradings.get(tradeId);
+        TradingAccount trade = user.getTradingAccount();
 
         if (!trade.reserveBalance(total)) {
             System.out.println("Insufficient balance.");
             return;
         }
 
-        Order order = new Order(user.getUserId(), tradeId, stock, qty, price, true);
+        Order order = new Order(user.getUserId(), trade.getTradingAccountId(), stock, qty, price, true);
         marketPlace.addBuyOrder(order);
         ordersById.put(order.getOrderId(), order);
         trade.addOrder(order.getOrderId());
@@ -303,7 +302,7 @@ public class Main {
     }
 
     static void placeSellOrder(User user) {
-        DematAccount demat = demats.get(user.getDematID());
+        DematAccount demat = user.getDematAccount();
         if (demat == null) {
             System.out.println("No Demat account.");
             return;
@@ -324,10 +323,9 @@ public class Main {
             return;
         }
 
-        int tradeId = user.getTradingAccountId();
-        TradingAccount trade = tradings.get(tradeId);
+        TradingAccount trade = user.getTradingAccount();
 
-        Order order = new Order(user.getUserId(), tradeId, stock, qty, price, false);
+        Order order = new Order(user.getUserId(), trade.getTradingAccountId(), stock, qty, price, false);
         marketPlace.addSellOrder(order);
         ordersById.put(order.getOrderId(), order);
         trade.addOrder(order.getOrderId());
@@ -420,8 +418,7 @@ public class Main {
             System.out.println("Enter the amount from that 0.0");
             return;
         }
-        int tradeId = user.getTradingAccountId();
-        TradingAccount temp1 = tradings.get(tradeId);
+        TradingAccount temp1 = user.getTradingAccount();
         System.out.println("Added " + amount + " Successfully!");
         temp1.credit(amount);
     }
@@ -462,7 +459,7 @@ public class Main {
         System.out.println("\n--- DELETE ACCOUNT ---");
         
         // Show what will be deleted
-        TradingAccount trade = tradings.get(user.getTradingAccountId());
+        TradingAccount trade = user.getTradingAccount();
         if (trade != null) {
             System.out.println("\nYour Account with the savings money will also be deleted :");
             System.out.printf("Trading Balance  : Rs.%-16.2f \n", trade.getBalance());
@@ -480,8 +477,10 @@ public class Main {
 
         cancelUserOrders(user);
 
-        int tradeId = user.getTradingAccountId();
-        tradings.remove(tradeId);
+        TradingAccount tradeToRemove = user.getTradingAccount();
+        if (tradeToRemove != null) {
+            tradings.remove(tradeToRemove.getTradingAccountId());
+        }
 
         user.setDeleted(true);
 
@@ -498,7 +497,7 @@ public class Main {
                         ta.releaseReservedBalance(order.getQuantity() * order.getPrice());
                     }
                 } else {
-                    DematAccount da = demats.get(user.getDematID());
+                    DematAccount da = user.getDematAccount();
                     if (da != null) {
                         da.releaseReservedStocks(order.getStockName(), order.getQuantity());
                     }
