@@ -5,7 +5,7 @@ public class Order {
     private int userId;
     private int tradingAccountId;
     private String stockName;
-    int quantity;  // package-private so MarketPlace can modify
+    int quantity;
     private double price;
     private boolean isBuy;
     private String status;  // OPEN, PARTIAL, FILLED, CANCELLED

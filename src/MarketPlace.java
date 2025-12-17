@@ -9,6 +9,7 @@ public class MarketPlace {
     private Map<Integer, DematAccount> dematAccounts;
     private Map<Integer, User> users;
     private List<Transaction> transactions;
+    private Map<Integer, Order> ordersById;
 
     public MarketPlace() {
         this.buyBook = new HashMap<>();
@@ -18,14 +19,15 @@ public class MarketPlace {
     public void setReferences(Map<Integer, TradingAccount> tradingAccounts,
                               Map<Integer, DematAccount> dematAccounts,
                               Map<Integer, User> users,
-                              List<Transaction> transactions) {
+                              List<Transaction> transactions,
+                              Map<Integer, Order> ordersById) {
         this.tradingAccounts = tradingAccounts;
         this.dematAccounts = dematAccounts;
         this.users = users;
         this.transactions = transactions;
+        this.ordersById = ordersById;
     }
 
-    // used when cancelling orders, it removes order from order books
     public void removeOrder(Order order) {
         String stock = order.getStockName();
         if (order.isBuy()) {
@@ -52,6 +54,14 @@ public class MarketPlace {
             buyBook.put(o.getStockName(), set);
         }
         buyBook.get(o.getStockName()).add(o);
+        
+        // Register order in central map and user's trading account
+        ordersById.put(o.getOrderId(), o);
+        TradingAccount trade = tradingAccounts.get(o.getTradingAccountId());
+        if (trade != null) {
+            trade.addOrder(o.getOrderId());
+        }
+        
         System.out.println("BUY order added: " + o.getOrderId());
 
         autoMatch(o.getStockName());
@@ -68,6 +78,14 @@ public class MarketPlace {
             sellBook.put(o.getStockName(), set);
         }
         sellBook.get(o.getStockName()).add(o);
+        
+        // Register order in central map and user's trading account
+        ordersById.put(o.getOrderId(), o);
+        TradingAccount trade = tradingAccounts.get(o.getTradingAccountId());
+        if (trade != null) {
+            trade.addOrder(o.getOrderId());
+        }
+        
         System.out.println("SELL order added: " + o.getOrderId());
 
         autoMatch(o.getStockName());
@@ -152,7 +170,7 @@ public class MarketPlace {
             buy.quantity -= qty;
             sell.quantity -= qty;
 
-            if (buy.quantity == 0) {   
+            if (buy.quantity == 0) {
                 buy.setStatus("FILLED");
             } else {
                 buy.setStatus("PARTIAL");

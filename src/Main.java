@@ -20,7 +20,7 @@ public class Main {
     static Scanner sc;
     static InputHandler inputHandler;
 
-    static User promoter1, promoter2, promoter3;
+    static User promoter1;
 
     static {
         validator = new Validator();
@@ -41,7 +41,7 @@ public class Main {
         stockSymbols.add("INFY");
 
         marketPlace = new MarketPlace();
-        marketPlace.setReferences(tradings, demats, users, transactions);
+        marketPlace.setReferences(tradings, demats, users, transactions, ordersById);
 
         // Promoter 1
         promoter1 = new User("Ram", "Ab.11111", "AWSD12J", true);
@@ -62,8 +62,6 @@ public class Main {
         if (p1Demat.reserveStocks("TCS", p1SellQty)) {
             Order p1SellOrder = new Order(promoter1.getUserId(), promoter1.getTradingAccount().getTradingAccountId(), "TCS", p1SellQty, p1SellPrice, false);
             marketPlace.addSellOrder(p1SellOrder);
-            ordersById.put(p1SellOrder.getOrderId(), p1SellOrder);
-            promoter1.getTradingAccount().addOrder(p1SellOrder.getOrderId());
             System.out.println("Promoter1 SELL placed: " + p1SellOrder.getOrderId());
         }
     }
@@ -284,8 +282,6 @@ public class Main {
 
         Order order = new Order(user.getUserId(), trade.getTradingAccountId(), stock, qty, price, true);
         marketPlace.addBuyOrder(order);
-        ordersById.put(order.getOrderId(), order);
-        trade.addOrder(order.getOrderId());
 
         if (order.getStatus().equals("FILLED")) {
             System.out.println("\nOrder #" + order.getOrderId() + " completely filled!");
@@ -322,8 +318,6 @@ public class Main {
 
         Order order = new Order(user.getUserId(), trade.getTradingAccountId(), stock, qty, price, false);
         marketPlace.addSellOrder(order);
-        ordersById.put(order.getOrderId(), order);
-        trade.addOrder(order.getOrderId());
 
         if (order.getStatus().equals("FILLED")) {
             System.out.println("\nOrder #" + order.getOrderId() + " completely filled!");
