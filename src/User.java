@@ -29,11 +29,6 @@ public class User {
         return this.password.equals(pass);
     }
 
-    public boolean confirmWithPassword(InputHandler inputHandler, String prompt) {
-        String pass = inputHandler.getString(prompt);
-        return this.password.equals(pass);
-    }
-
     public int getUserId() {
         return this.userId;
     }

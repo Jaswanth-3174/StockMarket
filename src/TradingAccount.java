@@ -115,7 +115,7 @@ public class TradingAccount {
         System.out.println("+----------+----------+----------+----------+---------------+---------------+----------+----------+---------------+");
         System.out.printf(
                 "|%-12s|%-10s|%-10s|%-12s|%-14s|%-10s|%-8s|%-12s|%-14s|%-15s|\n",
-                "Trans ID", "Buyer ID", "Seller ID", "Buyer Trade ID", "Seller Trade ID", "Stock name", "Quantity", "Price(1 stock)", "Total","Time"
+                "Trans ID", "Buyer ID", "Seller ID", "Buyer Trade ID", "Seller Trade ID", "Stock name", "Quantity", "Price(1 st)", "Total","Time"
         );
         System.out.println("+----------+----------+----------+----------+---------------+---------------+----------+----------+---------------+");
         for(Transaction transaction : transactions){

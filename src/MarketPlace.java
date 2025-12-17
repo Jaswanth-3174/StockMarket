@@ -55,7 +55,6 @@ public class MarketPlace {
         }
         buyBook.get(o.getStockName()).add(o);
         
-        // Register order in central map and user's trading account
         ordersById.put(o.getOrderId(), o);
         TradingAccount trade = tradingAccounts.get(o.getTradingAccountId());
         if (trade != null) {
@@ -79,7 +78,6 @@ public class MarketPlace {
         }
         sellBook.get(o.getStockName()).add(o);
         
-        // Register order in central map and user's trading account
         ordersById.put(o.getOrderId(), o);
         TradingAccount trade = tradingAccounts.get(o.getTradingAccountId());
         if (trade != null) {
