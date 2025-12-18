@@ -97,15 +97,15 @@ public class Main {
 
     static void printUserMenu(User user) {
         System.out.println("\n--- USER MENU (" + user.getUserName() + ") ---");
-        System.out.println("1. View Portfolio");
-        System.out.println("2. Place BUY Order");
-        System.out.println("3. Place SELL Order");
-        System.out.println("4. View My Orders");
-        System.out.println("5. View All Order Book");
-        System.out.println("6. View My Transactions");
-        System.out.println("7. View All Transactions");
-        System.out.println("8. Add money from Savings account");
-        System.out.println("9. Delete Account");
+        System.out.println("1.  View Portfolio");
+        System.out.println("2.  Place BUY Order");
+        System.out.println("3.  Place SELL Order");
+        System.out.println("4.  View My Orders");
+        System.out.println("5.  View All Order Book");
+        System.out.println("6.  View My Transactions");
+        System.out.println("7.  View All Transactions");
+        System.out.println("8.  Add money from Savings account");
+        System.out.println("9.  Delete Account");
         System.out.println("10. Logout");
         System.out.print("Enter choice: ");
     }
@@ -358,7 +358,6 @@ public class Main {
         Order.printTableHeader();
         
         for (Order order : ordersById.values()) {
-            // Only show OPEN and PARTIAL orders (not FILLED or CANCELLED)
             if (order.getStatus().equals("OPEN") || order.getStatus().equals("PARTIAL")) {
                 order.printRow();
                 found = true;
@@ -399,7 +398,6 @@ public class Main {
         }
     }
 
-    // Overloaded method - View all transactions (no user filter)
     static void viewTransactions() {
         System.out.println("\n--- ALL TRANSACTIONS ---");
         if (transactions.isEmpty()) {

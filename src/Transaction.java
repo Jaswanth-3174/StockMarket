@@ -74,7 +74,7 @@ public class Transaction {
                 transactionId, stockName, quantity, price, total, buyerName, sellerName, getFormattedTime());
     }
 
-    // Print row for user-specific view (shows if user bought or sold, and counterparty)
+    // Print row for user-specific view
     public void printRow(int userId, Map<Integer, User> users) {
         String type;
         String counterpartyName;

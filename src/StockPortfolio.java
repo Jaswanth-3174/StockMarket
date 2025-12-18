@@ -1,98 +1,99 @@
 import java.util.HashMap;
+import java.util.Map;
 
 public class StockPortfolio {
-    private HashMap<String, Integer> stockHoldings;
-    private HashMap<String, Integer> reservedHoldings;
+    private Map<String, StockHolding> holdings;
 
     public StockPortfolio() {
-        this.stockHoldings = new HashMap<>();
-        this.reservedHoldings = new HashMap<>();
+        this.holdings = new HashMap<>();
     }
 
     public void addShares(String stockName, int quantity) {
-        stockHoldings.put(stockName, stockHoldings.getOrDefault(stockName, 0) + quantity);
+        if (holdings.containsKey(stockName)) {
+            holdings.get(stockName).addShares(quantity);
+        } else {
+            holdings.put(stockName, new StockHolding(stockName, quantity));
+        }
     }
 
     public boolean sellShares(String stockName, int quantity) {
-        if (!reservedHoldings.containsKey(stockName)) {
+        if (!holdings.containsKey(stockName)) {
             System.out.println("Invalid stock name");
             return false;
         }
-        int reserved = reservedHoldings.get(stockName);
-        if (reserved < quantity) {
+        StockHolding holding = holdings.get(stockName);
+        if (!holding.removeShares(quantity)) {
             System.out.println("Insufficient stock quantity");
             return false;
         }
-        reservedHoldings.put(stockName, reserved - quantity);
-        if (reservedHoldings.get(stockName) == 0) {
-            reservedHoldings.remove(stockName);
-        }
-
-        stockHoldings.put(stockName, stockHoldings.get(stockName) - quantity);
-        if (stockHoldings.get(stockName) == 0) {
-            stockHoldings.remove(stockName);
+        // Remove from map if no shares left
+        if (holding.isEmpty()) {
+            holdings.remove(stockName);
         }
         return true;
     }
 
     public boolean reserveStocks(String stockName, int quantity) {
-        if (!stockHoldings.containsKey(stockName)) {
+        if (!holdings.containsKey(stockName)) {
             System.out.println("Invalid stock name\n");
             return false;
         }
-        int available = getAvailableQuantity(stockName);
-        if (available < quantity) {
+        StockHolding holding = holdings.get(stockName);
+        if (!holding.reserve(quantity)) {
             System.out.println("Insufficient stock quantity to reserve!");
             return false;
         }
-        reservedHoldings.put(stockName, reservedHoldings.getOrDefault(stockName, 0) + quantity);
         System.out.println("Stock : " + stockName + " | Reserved quantity : " + quantity + " , Successfully!");
         return true;
     }
 
     public void releaseReservedStocks(String stockName, int quantity) {
-        if (!reservedHoldings.containsKey(stockName)) {
+        if (!holdings.containsKey(stockName)) {
             System.out.println("Invalid stock name\n");
             return;
         }
-        if (reservedHoldings.get(stockName) < quantity) {
+        StockHolding holding = holdings.get(stockName);
+        if (!holding.releaseReserved(quantity)) {
             System.out.println("Insufficient stock quantity to release reserve!\n");
-            return;
-        }
-        reservedHoldings.put(stockName, reservedHoldings.get(stockName) - quantity);
-        if (reservedHoldings.get(stockName) == 0) {
-            reservedHoldings.remove(stockName);
         }
     }
 
     public int getAvailableQuantity(String stockName) {
-        if (!stockHoldings.containsKey(stockName)) {
+        if (!holdings.containsKey(stockName)) {
             System.out.println("Invalid stockName\n");
             return 0;
         }
-        int holdings = stockHoldings.get(stockName);
-        int reserved = reservedHoldings.getOrDefault(stockName, 0);
-        return holdings - reserved;
+        return holdings.get(stockName).getAvailableQuantity();
     }
 
     public int getTotalQuantity(String stockName) {
-        return stockHoldings.getOrDefault(stockName, 0);
+        if (!holdings.containsKey(stockName)) {
+            return 0;
+        }
+        return holdings.get(stockName).getTotalQuantity();
     }
 
     public int getReservedQuantity(String stockName) {
-        return reservedHoldings.getOrDefault(stockName, 0);
+        if (!holdings.containsKey(stockName)) {
+            return 0;
+        }
+        return holdings.get(stockName).getReservedQuantity();
+    }
+
+    public StockHolding getHolding(String stockName) {
+        return holdings.get(stockName);
     }
 
     public boolean hasHoldings() {
-        return !stockHoldings.isEmpty();
+        return !holdings.isEmpty();
     }
 
     public boolean isEmpty() {
-        return stockHoldings.isEmpty();
+        return holdings.isEmpty();
     }
 
     public void displayHoldings() {
-        if (stockHoldings.isEmpty()) {
+        if (holdings.isEmpty()) {
             System.out.println("No holdings! Buy stocks\n");
         } else {
             System.out.println("+------------+------------+------------+------------+");
@@ -101,13 +102,13 @@ public class StockPortfolio {
                     "Stock Name", "Total", "Reserved", "Available"
             );
             System.out.println("+------------+------------+------------+------------+");
-            for (String stockName : stockHoldings.keySet()) {
-                int total = stockHoldings.get(stockName);
-                int reserved = reservedHoldings.getOrDefault(stockName, 0);
-                int available = total - reserved;
+            for (StockHolding holding : holdings.values()) {
                 System.out.printf(
-                        "|%-12s|%-12s|%-12s|%-12s|\n",
-                        stockName, total, reserved, available
+                        "|%-12s|%-12d|%-12d|%-12d|\n",
+                        holding.getStockName(), 
+                        holding.getTotalQuantity(), 
+                        holding.getReservedQuantity(), 
+                        holding.getAvailableQuantity()
                 );
             }
             System.out.println("+------------+------------+------------+------------+");
