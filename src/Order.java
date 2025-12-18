@@ -2,8 +2,7 @@ public class Order {
     private static int idCounter = 1;
     
     private int orderId;
-    private int userId;
-    private int tradingAccountId;
+    private User user;
     private String stockName;
     private int originalQuantity;  // Original quantity when order was placed
     int quantity;  // Remaining quantity
@@ -12,10 +11,9 @@ public class Order {
     private String status;  // OPEN, PARTIAL, FILLED, CANCELLED
     private long timestamp;
 
-    public Order(int userId, int tradingAccountId, String stockName, int quantity, double price, boolean isBuy) {
+    public Order(User user, String stockName, int quantity, double price, boolean isBuy) {
         this.orderId = idCounter++;
-        this.userId = userId;
-        this.tradingAccountId = tradingAccountId;
+        this.user = user;
         this.stockName = stockName;
         this.originalQuantity = quantity;
         this.quantity = quantity;
@@ -33,12 +31,24 @@ public class Order {
         return orderId;
     }
 
+    public User getUser() {
+        return user;
+    }
+
     public int getUserId() {
-        return userId;
+        return user.getUserId();
     }
 
     public int getTradingAccountId() {
-        return tradingAccountId;
+        return user.getTradingAccount().getTradingAccountId();
+    }
+
+    public TradingAccount getTradingAccount() {
+        return user.getTradingAccount();
+    }
+
+    public DematAccount getDematAccount() {
+        return user.getDematAccount();
     }
 
     public String getStockName() {
@@ -73,11 +83,7 @@ public class Order {
         this.status = status;
     }
 
-    public long getTimestamp() {
-        return timestamp;
-    }
-
-    // Print row for all orders view (no user context)
+    // all orders
     public void printRow() {
         String type = isBuy ? "BUY" : "SELL";
         double total = quantity * price;
@@ -86,26 +92,13 @@ public class Order {
                 price, total, status);
     }
 
-    // Print row for user-specific view
-    public void printRow(int userId) {
+    // user specific
+    public void printRow(User user) {
         String type = isBuy ? "BUY" : "SELL";
         double total = quantity * price;
         System.out.printf("| %-8d | %-6s | %-8s | %-8d | %-8d | %-8d | %-10.2f | %-12.2f | %-10s |%n",
                 orderId, type, stockName, originalQuantity, getFilledQuantity(), quantity, 
                 price, total, status);
-    }
-
-    // Static method to print table header
-    public static void printTableHeader() {
-        System.out.println("+----------+--------+----------+----------+----------+----------+------------+--------------+------------+");
-        System.out.printf("| %-8s | %-6s | %-8s | %-8s | %-8s | %-8s | %-10s | %-12s | %-10s |%n",
-                "Order ID", "Type", "Stock", "Original", "Filled", "Remaining", "Price", "Total", "Status");
-        System.out.println("+----------+--------+----------+----------+----------+----------+------------+--------------+------------+");
-    }
-
-    // Static method to print table footer
-    public static void printTableFooter() {
-        System.out.println("+----------+--------+----------+----------+----------+----------+------------+--------------+------------+");
     }
 
     @Override

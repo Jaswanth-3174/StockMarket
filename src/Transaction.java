@@ -1,27 +1,22 @@
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.Map;
 
 public class Transaction {
     private static int idCounter = 1;
     
     private int transactionId;
-    private int buyerId;
-    private int sellerId;
-    private int buyerTradingId;
-    private int sellerTradingId;
+    private User buyer;
+    private User seller;
     private String stockName;
     private int quantity;
     private double price;
     private double total;
     private long timeStamp;
 
-    public Transaction(int buyerId, int sellerId, int buyerTradingId, int sellerTradingId, String stockName, int quantity, double price, double total){
+    public Transaction(User buyer, User seller, String stockName, int quantity, double price, double total){
         this.transactionId = idCounter++;
-        this.buyerId = buyerId;
-        this.sellerId = sellerId;
-        this.buyerTradingId = buyerTradingId;
-        this.sellerTradingId = sellerTradingId;
+        this.buyer = buyer;
+        this.seller = seller;
         this.stockName = stockName;
         this.quantity = quantity;
         this.price = price;
@@ -37,12 +32,20 @@ public class Transaction {
         return transactionId;
     }
 
+    public User getBuyer() {
+        return buyer;
+    }
+
+    public User getSeller() {
+        return seller;
+    }
+
     public int getBuyerId() {
-        return buyerId;
+        return buyer.getUserId();
     }
 
     public int getSellerId() {
-        return sellerId;
+        return seller.getUserId();
     }
 
     public String getStockName() {
@@ -66,58 +69,29 @@ public class Transaction {
         return sdf.format(new Date(timeStamp));
     }
 
-    // Print row for all transactions view (shows buyer and seller info)
-    public void printRow(Map<Integer, User> users) {
-        String buyerName = users.containsKey(buyerId) ? users.get(buyerId).getUserName() : "User#" + buyerId;
-        String sellerName = users.containsKey(sellerId) ? users.get(sellerId).getUserName() : "User#" + sellerId;
+    public void printRow() {
         System.out.printf("| %-8d | %-8s | %-5d | %-10.2f | %-12.2f | %-12s | %-12s | %-10s |%n",
-                transactionId, stockName, quantity, price, total, buyerName, sellerName, getFormattedTime());
+                transactionId, stockName, quantity, price, total, 
+                buyer.getUserName(), seller.getUserName(), getFormattedTime());
     }
 
-    // Print row for user-specific view
-    public void printRow(int userId, Map<Integer, User> users) {
+    public void printRow(User user) {
         String type;
         String counterpartyName;
         String counterpartyLabel;
         
-        if (userId == buyerId) {
+        if (user == buyer) {
             type = "BUY";
             counterpartyLabel = "From";
-            counterpartyName = users.containsKey(sellerId) ? users.get(sellerId).getUserName() : "User#" + sellerId;
+            counterpartyName = seller.getUserName();
         } else {
             type = "SELL";
             counterpartyLabel = "To";
-            counterpartyName = users.containsKey(buyerId) ? users.get(buyerId).getUserName() : "User#" + buyerId;
+            counterpartyName = buyer.getUserName();
         }
         
         System.out.printf("| %-8d | %-6s | %-8s | %-5d | %-10.2f | %-12.2f | %-6s %-12s | %-10s |%n",
                 transactionId, type, stockName, quantity, price, total, counterpartyLabel, counterpartyName, getFormattedTime());
-    }
-
-    // Static method to print table header for all transactions
-    public static void printTableHeader() {
-        System.out.println("+----------+----------+-------+------------+--------------+--------------+--------------+------------+");
-        System.out.printf("| %-8s | %-8s | %-5s | %-10s | %-12s | %-12s | %-12s | %-10s |%n",
-                "Trans ID", "Stock", "Qty", "Price", "Total", "Buyer", "Seller", "Time");
-        System.out.println("+----------+----------+-------+------------+--------------+--------------+--------------+------------+");
-    }
-
-    // Static method to print table header for user-specific transactions
-    public static void printUserTableHeader() {
-        System.out.println("+----------+--------+----------+-------+------------+--------------+---------------------+------------+");
-        System.out.printf("| %-8s | %-6s | %-8s | %-5s | %-10s | %-12s | %-19s | %-10s |%n",
-                "Trans ID", "Type", "Stock", "Qty", "Price", "Total", "Counterparty", "Time");
-        System.out.println("+----------+--------+----------+-------+------------+--------------+---------------------+------------+");
-    }
-
-    // Static method to print table footer
-    public static void printTableFooter() {
-        System.out.println("+----------+----------+-------+------------+--------------+--------------+--------------+------------+");
-    }
-
-    // Static method to print user table footer
-    public static void printUserTableFooter() {
-        System.out.println("+----------+--------+----------+-------+------------+--------------+---------------------+------------+");
     }
 
     @Override

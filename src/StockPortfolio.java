@@ -26,7 +26,6 @@ public class StockPortfolio {
             System.out.println("Insufficient stock quantity");
             return false;
         }
-        // Remove from map if no shares left
         if (holding.isEmpty()) {
             holdings.remove(stockName);
         }

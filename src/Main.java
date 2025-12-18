@@ -60,7 +60,7 @@ public class Main {
         int p1SellQty = 300;
         double p1SellPrice = 1500.5;
         if (p1Demat.reserveStocks("TCS", p1SellQty)) {
-            Order p1SellOrder = new Order(promoter1.getUserId(), promoter1.getTradingAccount().getTradingAccountId(), "TCS", p1SellQty, p1SellPrice, false);
+            Order p1SellOrder = new Order(promoter1, "TCS", p1SellQty, p1SellPrice, false);
             marketPlace.addSellOrder(p1SellOrder);
             System.out.println("Promoter1 SELL placed: " + p1SellOrder.getOrderId());
         }
@@ -280,7 +280,7 @@ public class Main {
             return;
         }
 
-        Order order = new Order(user.getUserId(), trade.getTradingAccountId(), stock, qty, price, true);
+        Order order = new Order(user, stock, qty, price, true);
         marketPlace.addBuyOrder(order);
 
         if (order.getStatus().equals("FILLED")) {
@@ -314,9 +314,7 @@ public class Main {
             return;
         }
 
-        TradingAccount trade = user.getTradingAccount();
-
-        Order order = new Order(user.getUserId(), trade.getTradingAccountId(), stock, qty, price, false);
+        Order order = new Order(user, stock, qty, price, false);
         marketPlace.addSellOrder(order);
 
         if (order.getStatus().equals("FILLED")) {
@@ -331,45 +329,50 @@ public class Main {
     static void viewMyOrders(User user) {
         System.out.println("\n--- MY ACTIVE ORDERS (OPEN & PARTIAL) ---");
         boolean found = false;
-        
-        Order.printTableHeader();
+
+        System.out.println("+----------+--------+----------+----------+----------+----------+------------+--------------+------------+");
+        System.out.printf("| %-8s | %-6s | %-8s | %-8s | %-8s | %-8s | %-10s | %-12s | %-10s |%n",
+                "Order ID", "Type", "Stock", "Original", "Filled", "Remaining", "Price", "Total", "Status");
+        System.out.println("+----------+--------+----------+----------+----------+----------+------------+--------------+------------+");
         
         for (Order order : ordersById.values()) {
             // Only show OPEN and PARTIAL orders for this user (not FILLED or CANCELLED)
-            if (order.getUserId() == user.getUserId() && 
+            if (order.getUser() == user && 
                 (order.getStatus().equals("OPEN") || order.getStatus().equals("PARTIAL"))) {
-                order.printRow(user.getUserId());
+                order.printRow(user);
                 found = true;
             }
         }
-        
-        Order.printTableFooter();
+
+        System.out.println("+----------+--------+----------+----------+----------+----------+------------+--------------+------------+");
         
         if (!found) {
             System.out.println("No active orders.");
         }
     }
 
-    // Overloaded method - View all orders (no user filter)
-    static void viewOrders() {
-        System.out.println("\n--- ALL ORDERS (OPEN & PARTIAL) ---");
-        boolean found = false;
-        
-        Order.printTableHeader();
-        
-        for (Order order : ordersById.values()) {
-            if (order.getStatus().equals("OPEN") || order.getStatus().equals("PARTIAL")) {
-                order.printRow();
-                found = true;
-            }
-        }
-        
-        Order.printTableFooter();
-        
-        if (!found) {
-            System.out.println("No active orders in the system.");
-        }
-    }
+//    static void viewOrders() {
+//        System.out.println("\n--- ALL ORDERS ---"); // open and partial
+//        boolean found = false;
+//
+//        System.out.println("+----------+--------+----------+----------+----------+----------+------------+--------------+------------+");
+//        System.out.printf("| %-8s | %-6s | %-8s | %-8s | %-8s | %-8s | %-10s | %-12s | %-10s |%n",
+//                "Order ID", "Type", "Stock", "Original", "Filled", "Remaining", "Price", "Total", "Status");
+//        System.out.println("+----------+--------+----------+----------+----------+----------+------------+--------------+------------+");
+//
+//        for (Order order : ordersById.values()) {
+//            if (order.getStatus().equals("OPEN") || order.getStatus().equals("PARTIAL")) {
+//                order.printRow();
+//                found = true;
+//            }
+//        }
+//
+//        System.out.println("+----------+--------+----------+----------+----------+----------+------------+--------------+------------+");
+//
+//        if (!found) {
+//            System.out.println("No active orders in the system.");
+//        }
+//    }
 
     static void viewOrderBook() {
         System.out.println("\n--- ORDER BOOKS ---");
@@ -381,18 +384,21 @@ public class Main {
     static void viewMyTransactions(User user) {
         System.out.println("\n--- MY TRANSACTIONS ---");
         boolean found = false;
-        
-        Transaction.printUserTableHeader();
-        
+
+        System.out.println("+----------+--------+----------+-------+------------+--------------+---------------------+------------+");
+        System.out.printf("| %-8s | %-6s | %-8s | %-5s | %-10s | %-12s | %-19s | %-10s |%n",
+                "Trans ID", "Type", "Stock", "Qty", "Price", "Total", "Counterparty", "Time");
+        System.out.println("+----------+--------+----------+-------+------------+--------------+---------------------+------------+");
+
         for (Transaction t : transactions) {
-            if (t.getBuyerId() == user.getUserId() || t.getSellerId() == user.getUserId()) {
-                t.printRow(user.getUserId(), users);
+            if (t.getBuyer() == user || t.getSeller() == user) {
+                t.printRow(user);
                 found = true;
             }
         }
-        
-        Transaction.printUserTableFooter();
-        
+
+        System.out.println("+----------+--------+----------+-------+------------+--------------+---------------------+------------+");
+
         if (!found) {
             System.out.println("No transactions yet.");
         }
@@ -403,11 +409,14 @@ public class Main {
         if (transactions.isEmpty()) {
             System.out.println("No transactions yet.");
         } else {
-            Transaction.printTableHeader();
+            System.out.println("+----------+----------+-------+------------+--------------+--------------+--------------+------------+");
+            System.out.printf("| %-8s | %-8s | %-5s | %-10s | %-12s | %-12s | %-12s | %-10s |%n",
+                    "Trans ID", "Stock", "Qty", "Price", "Total", "Buyer", "Seller", "Time");
+            System.out.println("+----------+----------+-------+------------+--------------+--------------+--------------+------------+");
             for (Transaction t : transactions) {
-                t.printRow(users);
+                t.printRow();
             }
-            Transaction.printTableFooter();
+            System.out.println("+----------+----------+-------+------------+--------------+--------------+--------------+------------+");
         }
     }
 
@@ -490,14 +499,14 @@ public class Main {
 
     static void cancelUserOrders(User user) {
         for (Order order : ordersById.values()) {
-            if (order.getUserId() == user.getUserId() && !order.getStatus().equals("FILLED")) {
+            if (order.getUser() == user && !order.getStatus().equals("FILLED")) {
                 if (order.isBuy()) {
-                    TradingAccount ta = tradings.get(order.getTradingAccountId());
+                    TradingAccount ta = order.getTradingAccount();
                     if (ta != null) {
                         ta.releaseReservedBalance(order.getQuantity() * order.getPrice());
                     }
                 } else {
-                    DematAccount da = user.getDematAccount();
+                    DematAccount da = order.getDematAccount();
                     if (da != null) {
                         da.releaseReservedStocks(order.getStockName(), order.getQuantity());
                     }

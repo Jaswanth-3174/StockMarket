@@ -107,37 +107,37 @@ public class TradingAccount {
         orderIds.add(id);
     }
 
-    public void addTransaction(Transaction transaction){
-        transactions.add(transaction);
-    }
+//    public void addTransaction(Transaction transaction){
+//        transactions.add(transaction);
+//    }
+//
+//    public void displayTransactions(){
+//        System.out.println("+----------+----------+----------+----------+---------------+---------------+----------+----------+---------------+");
+//        System.out.printf(
+//                "|%-12s|%-10s|%-10s|%-12s|%-14s|%-10s|%-8s|%-12s|%-14s|%-15s|\n",
+//                "Trans ID", "Buyer ID", "Seller ID", "Buyer Trade ID", "Seller Trade ID", "Stock name", "Quantity", "Price(1 st)", "Total","Time"
+//        );
+//        System.out.println("+----------+----------+----------+----------+---------------+---------------+----------+----------+---------------+");
+//        for(Transaction transaction : transactions){
+//            transaction.toString();
+//        }
+//        System.out.println("+----------+----------+----------+----------+---------------+---------------+----------+----------+---------------+");
+//        System.out.println();
+//    }
 
-    public void displayTransactions(){
-        System.out.println("+----------+----------+----------+----------+---------------+---------------+----------+----------+---------------+");
-        System.out.printf(
-                "|%-12s|%-10s|%-10s|%-12s|%-14s|%-10s|%-8s|%-12s|%-14s|%-15s|\n",
-                "Trans ID", "Buyer ID", "Seller ID", "Buyer Trade ID", "Seller Trade ID", "Stock name", "Quantity", "Price(1 st)", "Total","Time"
-        );
-        System.out.println("+----------+----------+----------+----------+---------------+---------------+----------+----------+---------------+");
-        for(Transaction transaction : transactions){
-            transaction.toString();
-        }
-        System.out.println("+----------+----------+----------+----------+---------------+---------------+----------+----------+---------------+");
-        System.out.println();
-    }
+//    public void displayOrders(){
+//        if (orderIds.isEmpty()) {
+//            System.out.println("No orders placed from this account.");
+//            return;
+//        }
+//        System.out.println("\nORDERS FROM THIS ACCOUNT");
+//        System.out.println("Order IDs: " + orderIds);
+//        System.out.println("Total Orders: " + orderIds.size());
+//        System.out.println();
+//    }
 
-    public void displayOrders(){
-        if (orderIds.isEmpty()) {
-            System.out.println("No orders placed from this account.");
-            return;
-        }
-        System.out.println("\nORDERS FROM THIS ACCOUNT");
-        System.out.println("Order IDs: " + orderIds);
-        System.out.println("Total Orders: " + orderIds.size());
-        System.out.println();
-    }
-
-    private void deactiveAccount(){
-        this.isActive = false;
-        System.out.println("Account ID : " + this.tradingAccountId +", deactivated Successfully");
-    }
+//    private void deactiveAccount(){
+//        this.isActive = false;
+//        System.out.println("Account ID : " + this.tradingAccountId +", deactivated Successfully");
+//    }
 }
