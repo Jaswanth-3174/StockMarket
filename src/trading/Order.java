@@ -1,3 +1,7 @@
+package trading;
+
+import account.*;
+
 public class Order {
     private static int idCounter = 1;
     
@@ -5,7 +9,7 @@ public class Order {
     private User user;
     private String stockName;
     private int originalQuantity;  // Original quantity when order was placed
-    int quantity;  // Remaining quantity
+    private int quantity;  // Remaining quantity
     private double price;
     private boolean isBuy;
     private String status;  // OPEN, PARTIAL, FILLED, CANCELLED
@@ -83,6 +87,18 @@ public class Order {
         this.status = status;
     }
 
+    public void setPrice(double price) {
+        this.price = price;
+    }
+
+    public void setQuantity(int quantity) {
+        this.quantity = quantity;
+    }
+
+    public void setOriginalQuantity(int originalQuantity) {
+        this.originalQuantity = originalQuantity;
+    }
+
     // all orders
     public void printRow() {
         String type = isBuy ? "BUY" : "SELL";
@@ -104,6 +120,6 @@ public class Order {
     @Override
     public String toString() {
         String type = isBuy ? "BUY" : "SELL";
-        return "Order{id=" + orderId + ", " + type + ", " + stockName + ", qty=" + quantity + ", price=" + price + ", status=" + status + "}";
+        return "trading.Order{id=" + orderId + ", " + type + ", " + stockName + ", qty=" + quantity + ", price=" + price + ", status=" + status + "}";
     }
 }

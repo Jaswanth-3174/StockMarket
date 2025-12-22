@@ -1,3 +1,9 @@
+package market;
+
+import account.*;
+import trading.*;
+import util.*;
+
 import java.util.*;
 
 public class MarketPlace {
@@ -94,8 +100,8 @@ public class MarketPlace {
             return;
         }
 
-        TreeSet<Order> buys = buyBook.get(stock);
-        TreeSet<Order> sells = sellBook.get(stock);
+        TreeSet<Order> buys = buyBook.get(stock);   // desc
+        TreeSet<Order> sells = sellBook.get(stock); // asc
 
         if (buys == null || sells == null || buys.isEmpty() || sells.isEmpty()) {
             return;
@@ -176,17 +182,17 @@ public class MarketPlace {
             System.out.println("Seller ID      : " + sellerUser.getUserId() + " (" + sellerUser.getUserName() + ")");
             System.out.println();
 
-            buy.quantity -= qty;
-            sell.quantity -= qty;
+            buy.setQuantity(buy.getQuantity() - qty);
+            sell.setQuantity(sell.getQuantity() - qty);
 
-            if (buy.quantity == 0) {
+            if (buy.getQuantity() == 0) {
                 buy.setStatus("FILLED");
                 buys.remove(buy);
             } else {
                 buy.setStatus("PARTIAL");
             }
 
-            if (sell.quantity == 0) {
+            if (sell.getQuantity() == 0) {
                 sell.setStatus("FILLED");
                 sells.remove(sell);
             } else {
@@ -215,5 +221,144 @@ public class MarketPlace {
                 System.out.println("  id=" + o.getOrderId() + " qty=" + o.getQuantity() + " price=" + o.getPrice());
             }
         }
+    }
+
+    public boolean modifyOrder(User user, int orderId, int newQuantity, double newPrice) {
+        Order order = ordersById.get(orderId);
+        
+        if (order == null) {
+            System.out.println("trading.Order #" + orderId + " not found.");
+            return false;
+        }
+        
+        // Check if this user owns the order
+        if (order.getUser() != user) {
+            System.out.println("You can only modify your own orders.");
+            return false;
+        }
+        
+        // Can only modify OPEN or PARTIAL orders
+        if (order.getStatus().equals("FILLED") || order.getStatus().equals("CANCELLED")) {
+            System.out.println("Cannot modify order with status: " + order.getStatus());
+            return false;
+        }
+        
+        // Validate new quantity (must be positive and >= filled quantity for partial orders)
+        int filledQty = order.getFilledQuantity();
+        if (newQuantity <= 0) {
+            System.out.println("New quantity must be positive.");
+            return false;
+        }
+        if (newQuantity < filledQty) {
+            System.out.println("New quantity (" + newQuantity + ") cannot be less than already filled quantity (" + filledQty + ").");
+            return false;
+        }
+        
+        // Validate new price
+        if (newPrice <= 0) {
+            System.out.println("New price must be positive.");
+            return false;
+        }
+        
+        String stock = order.getStockName();
+        int oldRemainingQty = order.getQuantity();
+        double oldPrice = order.getPrice();
+        int newRemainingQty = newQuantity - filledQty;
+        
+        // Remove from tree before modifying (TreeSet uses comparator with price)
+        removeOrder(order);
+        
+        if (order.isBuy()) {
+            TradingAccount ta = order.getTradingAccount();
+            double oldReserved = oldRemainingQty * oldPrice;
+            double newReserved = newRemainingQty * newPrice;
+            
+            // Release old reservation
+            ta.releaseReservedBalance(oldReserved);
+            
+            // Check if user has enough balance for new reservation
+            if (ta.getBalance() < newReserved) {
+                // Rollback - re-reserve old amount and re-add to tree
+                ta.reserveBalance(oldReserved);
+                reAddOrder(order);
+                System.out.println("Insufficient balance. Need Rs." + newReserved + ", available Rs." + ta.getBalance());
+                return false;
+            }
+            
+            // Reserve new amount
+            ta.reserveBalance(newReserved);
+            
+        } else {
+            DematAccount da = order.getDematAccount();
+            
+            // Release old reserved stocks
+            da.releaseReservedStocks(stock, oldRemainingQty);
+            
+            // Check if user has enough stocks for new reservation
+            int availableStocks = da.getAvailableQuantity(stock);
+            if (availableStocks < newRemainingQty) {
+                // Rollback - re-reserve old stocks and re-add to tree
+                da.reserveStocks(stock, oldRemainingQty);
+                reAddOrder(order);
+                System.out.println("Insufficient stocks. Need " + newRemainingQty + ", available " + availableStocks);
+                return false;
+            }
+            
+            // Reserve new stocks
+            da.reserveStocks(stock, newRemainingQty);
+        }
+        
+        // Update order
+        order.setOriginalQuantity(newQuantity);
+        order.setQuantity(newRemainingQty);
+        order.setPrice(newPrice);
+        
+        // Update status based on new quantity
+        if (filledQty > 0) {
+            order.setStatus("PARTIAL");
+        } else {
+            order.setStatus("OPEN");
+        }
+        
+        // Re-add to tree with new price
+        reAddOrder(order);
+        
+        System.out.println("trading.Order #" + orderId + " modified successfully.");
+        System.out.println("New quantity: " + newQuantity + " (remaining: " + newRemainingQty + "), New price: Rs." + newPrice);
+        
+        // Trigger autoMatch as price/quantity changed
+        autoMatch(stock);
+        
+        return true;
+    }
+    
+    private void reAddOrder(Order order) {
+        if (order.isBuy()) {
+            if (!buyBook.containsKey(order.getStockName())) {
+                TreeSet<Order> set = new TreeSet<>((a, b) -> {
+                    if (b.getPrice() != a.getPrice()) {
+                        return Double.compare(b.getPrice(), a.getPrice());
+                    }
+                    return Integer.compare(a.getOrderId(), b.getOrderId());
+                });
+                buyBook.put(order.getStockName(), set);
+            }
+            buyBook.get(order.getStockName()).add(order);
+        } else {
+            if (!sellBook.containsKey(order.getStockName())) {
+                TreeSet<Order> set = new TreeSet<>((a, b) -> {
+                    if (a.getPrice() != b.getPrice()) {
+                        return Double.compare(a.getPrice(), b.getPrice());
+                    }
+                    return Integer.compare(a.getOrderId(), b.getOrderId());
+                });
+                sellBook.put(order.getStockName(), set);
+            }
+            sellBook.get(order.getStockName()).add(order);
+        }
+    }
+    
+    public Order getOrderById(int orderId) {
+        return ordersById.get(orderId);
     }
 }

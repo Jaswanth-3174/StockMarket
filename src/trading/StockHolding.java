@@ -1,3 +1,5 @@
+package trading;
+
 public class StockHolding {
     private String stockName;
     private int totalQuantity;
@@ -66,7 +68,7 @@ public class StockHolding {
 
     @Override
     public String toString() {
-        return "StockHolding{" + stockName + ", total=" + totalQuantity + 
+        return "trading.StockHolding{" + stockName + ", total=" + totalQuantity +
                ", reserved=" + reservedQuantity + ", available=" + getAvailableQuantity() + "}";
     }
 }

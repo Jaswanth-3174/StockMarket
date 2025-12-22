@@ -1,3 +1,5 @@
+package trading;
+
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -56,6 +58,10 @@ public class Transaction {
         return quantity;
     }
 
+    public void setQuantity(int q){
+        this.quantity = q;
+    }
+
     public double getPrice() {
         return price;
     }
@@ -96,7 +102,7 @@ public class Transaction {
 
     @Override
     public String toString() {
-        return "Transaction #" + transactionId + " | " + stockName + " | Qty: " + quantity + 
+        return "trading.Transaction #" + transactionId + " | " + stockName + " | Qty: " + quantity +
                " | Price: " + price + " | Total: " + total + " | Time: " + getFormattedTime();
     }
 }

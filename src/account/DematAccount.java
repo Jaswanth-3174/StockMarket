@@ -1,3 +1,8 @@
+package account;
+
+import trading.*;
+import util.*;
+
 public class DematAccount {
     private static int idCounter = 1;
     private int demandAccountId;

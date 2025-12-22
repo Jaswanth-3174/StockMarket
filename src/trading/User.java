@@ -1,3 +1,9 @@
+package trading;
+
+import account.DematAccount;
+import account.TradingAccount;
+import util.*;
+
 public class User {
     private static int idCounter = 1;
     private int userId;
@@ -9,7 +15,7 @@ public class User {
     private boolean isPromoter;
     private boolean isDeleted;
 
-    public User(String userName, String password, String panNumber, boolean isPromoter){
+    public User(String userName, String password, String panNumber, boolean isPromoter) {
         this.userId = idCounter++;
         this.userName = userName;
         this.password = password;
@@ -33,7 +39,7 @@ public class User {
         return this.userId;
     }
 
-    public String getUserName(){
+    public String getUserName() {
         return this.userName;
     }
 
@@ -41,7 +47,7 @@ public class User {
         return this.dematAccount;
     }
 
-    public void setDematAccount(DematAccount dematAccount){
+    public void setDematAccount(DematAccount dematAccount) {
         this.dematAccount = dematAccount;
     }
 
@@ -49,11 +55,11 @@ public class User {
         return this.panNumber;
     }
 
-    public void setTradingAccount(TradingAccount tradingAccount){
+    public void setTradingAccount(TradingAccount tradingAccount) {
         this.tradingAccount = tradingAccount;
     }
 
-    public TradingAccount getTradingAccount(){
+    public TradingAccount getTradingAccount() {
         return this.tradingAccount;
     }
 

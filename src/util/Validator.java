@@ -1,21 +1,23 @@
+package util;
+
 public class Validator {
 
-    boolean validateUserName(String userName){
+    public boolean validateUserName(String userName){
         if(userName.length()<3){
-            System.out.println("User name minimum of length 3 required");
+            System.out.println("trading.User name minimum of length 3 required");
             return false;
         }
         for(char c : userName.toCharArray()){
             if( (c>='a' && c<='z') || (c>='A' && c<='Z')){
             }else{
-                System.out.println("User name can contain only alphabets");
+                System.out.println("trading.User name can contain only alphabets");
                 return false;
             }
         }
         return true;
     }
 
-    boolean validatePassword(String password){
+    public boolean validatePassword(String password){
         if(password.length() < 8 || password.length() > 15){
             System.out.println("Password should be of length 8 to 15");
             return false;

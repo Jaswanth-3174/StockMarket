@@ -1,3 +1,8 @@
+import trading.*;
+import util.*;
+import account.*;
+import market.*;
+
 import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.Scanner;
@@ -101,12 +106,13 @@ public class Main {
         System.out.println("2.  Place BUY Order");
         System.out.println("3.  Place SELL Order");
         System.out.println("4.  View My Orders");
-        System.out.println("5.  View All Order Book");
-        System.out.println("6.  View My Transactions");
-        System.out.println("7.  View All Transactions");
-        System.out.println("8.  Add money from Savings account");
-        System.out.println("9.  Delete Account");
-        System.out.println("10. Logout");
+        System.out.println("5.  Modify Order");
+        System.out.println("6.  View All Order Book");
+        System.out.println("7.  View My Transactions");
+        System.out.println("8.  View All Transactions");
+        System.out.println("9.  Add money from Savings account");
+        System.out.println("10. Delete Account");
+        System.out.println("11. Logout");
         System.out.print("Enter choice: ");
     }
 
@@ -174,7 +180,7 @@ public class Main {
     }
 
     static void login() {
-        int id = inputHandler.getInteger("Enter User ID: ");
+        int id = inputHandler.getInteger("Enter trading.User ID: ");
 
         User user = users.get(id);
         if (user == null) {
@@ -215,23 +221,26 @@ public class Main {
                     viewMyOrders(user);
                     break;
                 case 5:
-                    viewOrderBook();
+                    modifyOrder(user);
                     break;
                 case 6:
-                    viewMyTransactions(user);
+                    viewOrderBook();
                     break;
                 case 7:
-                    viewAllTransactions();
+                    viewMyTransactions(user);
                     break;
                 case 8:
-                    addMoney(user);
+                    viewAllTransactions();
                     break;
                 case 9:
+                    addMoney(user);
+                    break;
+                case 10:
                     if (deleteAccount(user)) {
                         return;
                     }
                     break;
-                case 10:
+                case 11:
                     System.out.println("Logged out.");
                     return;
                 default:
@@ -284,9 +293,9 @@ public class Main {
         marketPlace.addBuyOrder(order);
 
         if (order.getStatus().equals("FILLED")) {
-            System.out.println("\nOrder #" + order.getOrderId() + " completely filled!");
+            System.out.println("\ntrading.Order #" + order.getOrderId() + " completely filled!");
         } else if (order.getStatus().equals("PARTIAL")) {
-            System.out.println("\nOrder #" + order.getOrderId() + " partially filled. Remaining: " + order.getQuantity() + " shares waiting.");
+            System.out.println("\ntrading.Order #" + order.getOrderId() + " partially filled. Remaining: " + order.getQuantity() + " shares waiting.");
         } else {
             System.out.println("\nBUY order #" + order.getOrderId() + " placed. Waiting for matching sell order.");
         }
@@ -318,9 +327,9 @@ public class Main {
         marketPlace.addSellOrder(order);
 
         if (order.getStatus().equals("FILLED")) {
-            System.out.println("\nOrder #" + order.getOrderId() + " completely filled!");
+            System.out.println("\ntrading.Order #" + order.getOrderId() + " completely filled!");
         } else if (order.getStatus().equals("PARTIAL")) {
-            System.out.println("\nOrder #" + order.getOrderId() + " partially filled. Remaining: " + order.getQuantity() + " shares waiting.");
+            System.out.println("\ntrading.Order #" + order.getOrderId() + " partially filled. Remaining: " + order.getQuantity() + " shares waiting.");
         } else {
             System.out.println("\nSELL order #" + order.getOrderId() + " placed. Waiting for matching buy order.");
         }
@@ -332,11 +341,11 @@ public class Main {
 
         System.out.println("+----------+--------+----------+----------+----------+----------+------------+--------------+------------+");
         System.out.printf("| %-8s | %-6s | %-8s | %-8s | %-8s | %-8s | %-10s | %-12s | %-10s |%n",
-                "Order ID", "Type", "Stock", "Original", "Filled", "Remaining", "Price", "Total", "Status");
+                "trading.Order ID", "Type", "Stock", "Original", "Filled", "Remaining", "Price", "Total", "Status");
         System.out.println("+----------+--------+----------+----------+----------+----------+------------+--------------+------------+");
         
         for (Order order : ordersById.values()) {
-            // Only show OPEN and PARTIAL orders for this user (not FILLED or CANCELLED)
+            // shows only OPEN and PARTIAL orders (not FILLED or CANCELLED)
             if (order.getUser() == user && 
                 (order.getStatus().equals("OPEN") || order.getStatus().equals("PARTIAL"))) {
                 order.printRow(user);
@@ -351,16 +360,82 @@ public class Main {
         }
     }
 
+    static void modifyOrder(User user) {
+        viewMyOrders(user);
+
+        boolean hasActiveOrders = false;
+        for (Order order : ordersById.values()) {
+            if (order.getUser() == user && 
+                (order.getStatus().equals("OPEN") || order.getStatus().equals("PARTIAL"))) {
+                hasActiveOrders = true;
+                break;
+            }
+        }
+        
+        if (!hasActiveOrders) {
+            System.out.println("You have no orders to modify.");
+            return;
+        }
+        
+        int orderId = inputHandler.getInteger("Enter trading.Order ID to modify: ");
+        
+        Order order = marketPlace.getOrderById(orderId);
+        if (order == null) {
+            System.out.println("trading.Order #" + orderId + " not found.");
+            return;
+        }
+        
+        // checking ownership
+        if (order.getUser() != user) {
+            System.out.println("You can only modify your own orders.");
+            return;
+        }
+        
+        // current order details
+        System.out.println("\n--- Current trading.Order Details ---");
+        String type = order.isBuy() ? "BUY" : "SELL";
+        System.out.println("trading.Order ID    : " + order.getOrderId());
+        System.out.println("Type        : " + type);
+        System.out.println("Stock       : " + order.getStockName());
+        System.out.println("Original Qty: " + order.getOriginalQuantity());
+        System.out.println("Filled Qty  : " + order.getFilledQuantity());
+        System.out.println("Remaining   : " + order.getQuantity());
+        System.out.println("Price       : Rs." + order.getPrice());
+        System.out.println("Status      : " + order.getStatus());
+
+        System.out.println("\n(Enter new values or 0 to keep current)");
+        
+        int newQuantity = inputHandler.getInteger("Enter new total quantity (current: " + order.getOriginalQuantity() + "): ");
+        if (newQuantity == 0) {
+            newQuantity = order.getOriginalQuantity();
+        }
+        
+        double newPrice = inputHandler.getDouble("Enter new price (current: " + order.getPrice() + "): ");
+        if (newPrice == 0) {
+            newPrice = order.getPrice();
+        }
+        
+        // Confirm ?
+        System.out.println("\nNew quantity: " + newQuantity + ", New price: Rs." + newPrice);
+        String confirm = inputHandler.getString("Confirm modification? (yes/no): ");
+        
+        if (confirm.equalsIgnoreCase("yes") || confirm.equalsIgnoreCase("y")) {
+            marketPlace.modifyOrder(user, orderId, newQuantity, newPrice);
+        } else {
+            System.out.println("Modification cancelled.");
+        }
+    }
+
 //    static void viewOrders() {
 //        System.out.println("\n--- ALL ORDERS ---"); // open and partial
 //        boolean found = false;
 //
 //        System.out.println("+----------+--------+----------+----------+----------+----------+------------+--------------+------------+");
 //        System.out.printf("| %-8s | %-6s | %-8s | %-8s | %-8s | %-8s | %-10s | %-12s | %-10s |%n",
-//                "Order ID", "Type", "Stock", "Original", "Filled", "Remaining", "Price", "Total", "Status");
+//                "trading.Order ID", "Type", "Stock", "Original", "Filled", "Remaining", "Price", "Total", "Status");
 //        System.out.println("+----------+--------+----------+----------+----------+----------+------------+--------------+------------+");
 //
-//        for (Order order : ordersById.values()) {
+//        for (trading.Order order : ordersById.values()) {
 //            if (order.getStatus().equals("OPEN") || order.getStatus().equals("PARTIAL")) {
 //                order.printRow();
 //                found = true;
