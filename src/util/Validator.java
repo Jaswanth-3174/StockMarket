@@ -47,7 +47,6 @@ public class Validator {
         }
         return true;
     }
-
 //    boolean validatePanNumber(String panNumber){
 //        if(panNumber.length() != 7){
 //            System.out.println("Invalid PAN Number");
