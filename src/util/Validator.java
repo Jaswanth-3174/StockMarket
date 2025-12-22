@@ -4,13 +4,13 @@ public class Validator {
 
     public boolean validateUserName(String userName){
         if(userName.length()<3){
-            System.out.println("trading.User name minimum of length 3 required");
+            System.out.println("User name minimum of length 3 required");
             return false;
         }
         for(char c : userName.toCharArray()){
             if( (c>='a' && c<='z') || (c>='A' && c<='Z')){
             }else{
-                System.out.println("trading.User name can contain only alphabets");
+                System.out.println("User name can contain only alphabets");
                 return false;
             }
         }
